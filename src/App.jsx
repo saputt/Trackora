@@ -9,8 +9,8 @@ import DashboardPage from './pages/dashboard/index'
 import VehiclesPage from './pages/vehicles/index'
 import VehicleDetailPage from './pages/vehicles/detail'
 import NewReportPage from './pages/vehicles/new-report'
-import AlertsPage from './pages/alerts/index'
 import SettingsPage from './pages/settings/index'
+import AlertsPage from './pages/alerts'
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuthStore()
