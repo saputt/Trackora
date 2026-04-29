@@ -85,9 +85,9 @@ export default function NewReportPage() {
   const mutation = useMutation({
     mutationFn: createMaintenanceReport,
     onSuccess: (report) => {
-      queryClient.invalidateQueries(['vehicle', form.vehicleId])
-      queryClient.invalidateQueries(['vehicles'])
-      queryClient.invalidateQueries(['dashboard-summary'])
+      queryClient.invalidateQueries({ queryKey: ['vehicle', form.vehicleId] })
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
       setCreatedReport(report)
       setSuccess(true)
     },

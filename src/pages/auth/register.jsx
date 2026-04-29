@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, User, Mail, Lock, Briefcase } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { Eye, EyeOff, User, Mail, Lock } from 'lucide-react'
 import AuthLayout from '../../components/templates/AuthLayout'
 import Button from '../../components/atoms/Button'
 import Input from '../../components/atoms/Input'
 import Select from '../../components/atoms/Select'
 import { useAuthStore } from '../../store'
+import { registerUser } from '../../services/authService'
 
 const roles = [
   { value: 'technician', label: 'Technician / Operator' },
@@ -16,7 +16,7 @@ const roles = [
 
 export default function RegisterPage() {
   const navigate = useNavigate()
-  const { login } = useAuthStore()
+  const { setAuthSession } = useAuthStore()
   const [form, setForm] = useState({ name: '', email: '', role: '', password: '', confirm: '' })
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -27,7 +27,7 @@ export default function RegisterPage() {
     if (!form.name) e.name = 'Nama lengkap diwajibkan'
     if (!form.email) e.email = 'Email profesional diwajibkan'
     if (!form.role) e.role = 'Role harus dipilih'
-    if (!form.password || form.password.length < 6) e.password = 'Kredensial tidak memenuhi syarat (min. 6 karakter)'
+    if (!form.password || form.password.length < 8) e.password = 'Kredensial tidak memenuhi syarat (min. 8 karakter)'
     if (form.password !== form.confirm) e.confirm = 'Konfirmasi sandi tidak sesuai'
     return e
   }
@@ -37,9 +37,22 @@ export default function RegisterPage() {
     const errs = validate()
     if (Object.keys(errs).length) { setErrors(errs); return }
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 800))
-    login({ name: form.name, email: form.email, role: roles.find(r => r.value === form.role)?.label || form.role })
-    navigate('/dashboard')
+    try {
+      const auth = await registerUser({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        role: form.role,
+        password: form.password,
+      })
+      setAuthSession(auth)
+      navigate('/dashboard')
+    } catch (err) {
+      setErrors({
+        submit: err?.message || 'Pendaftaran gagal. Silakan coba lagi.',
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const set = (field) => (e) => setForm({ ...form, [field]: e.target.value })
@@ -88,7 +101,7 @@ export default function RegisterPage() {
             <Input
               label="Sandi Akses"
               type={showPass ? 'text' : 'password'}
-              placeholder="Min. 6 char"
+               placeholder="Min. 8 char"
               icon={<Lock className="h-4 w-4" />}
               value={form.password}
               onChange={set('password')}
@@ -117,6 +130,11 @@ export default function RegisterPage() {
           <Button type="submit" size="xl" loading={loading} className="w-full mt-4">
             Ajukan Pendaftaran
           </Button>
+          {errors.submit && (
+            <p className="text-sm text-[#9B2C2C] bg-[#FEF2F2] border border-[#FCA5A5] rounded-xl px-3 py-2">
+              {errors.submit}
+            </p>
+          )}
         </form>
 
         <p className="text-center text-sm text-[#6B6860] mt-8">
